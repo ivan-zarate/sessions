@@ -1,5 +1,3 @@
-
-
 let baseUrl = "http://localhost:8080";
 let productos = [];
 
@@ -7,7 +5,8 @@ const getProducts = () => {
     fetch(baseUrl + '/api/products').then(res => {
         res.json().then(json => {
             productos = json;
-            printProducts()
+            printProducts();
+            getUser();
         })
     })
 }
@@ -60,7 +59,7 @@ const addProduct = () => {
 
 const populateData = (productCode) => {
     let product = productos.filter(product => product.code == productCode);
-    product=product[0];
+    product = product[0];
     document.getElementById("name").value = product.name;
     document.getElementById("description").value = product.description;
     document.getElementById("code").value = product.code;
@@ -156,3 +155,41 @@ const addProductCart = (productCode) => {
     })
 }
 
+// registro de usuarios
+let user="";
+const addUser = () => {
+    let data = {
+        userName: document.getElementById("userName").value,
+    }
+    fetch(baseUrl + '/api/login', {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": 'application/json; charset=UTF-8'
+        },
+    })
+    .then(res => {
+        user=data.userName;
+    })
+}
+
+
+const getUser = () => {
+    fetch(baseUrl + '/api/user').then(res => {
+        res.json().then(json => {
+            user = json;
+            printUser();
+        })
+    })
+}
+const printUser = () => {
+    let container = document.getElementById('user');
+    container.innerHTML=`<p>Bienvenido ${user[0].userName}</p>
+    <button type="button" class="btn btn-danger btn-sm" onclick="destroySession()">LogOut</button>`
+}
+
+const destroySession= ()=>{
+    fetch(baseUrl + '/api/logout' , { method: "DELETE" }).then(res => {
+        getProducts();
+    })
+}

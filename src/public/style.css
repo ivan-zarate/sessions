@@ -7,6 +7,9 @@ body {
   width: 3em;
   height: 3em;
 }
+.container-fluid ul{
+  flex-direction: row;
+}
 
 #products,
 #items {

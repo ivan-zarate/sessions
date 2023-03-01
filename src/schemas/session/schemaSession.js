@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const schemaSessionOnMongo = new mongoose.Schema(
     {
-        username: { type: String, required: true },
+        userName: { type: String, required: true },
     }, {
     timestamps: true
 }

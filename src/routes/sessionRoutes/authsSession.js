@@ -1,26 +1,24 @@
 const express = require("express");
 const sessionsMongo = express.Router();
-const sessionsMongoDAO = require("../../daos/sessions/daoSessionMongo")
-const { checkLogged } = require("../../middlewares/validateAuth");
+const sessionsMongoDAO = require("../../daos/sessions/daoSessionMongo"); // Par crear usuario en base de datos
+// const { checkLogged } = require("../../middlewares/validateAuth");
 
 sessionsMongo.use((req, res, next) => {
     console.log("Time: ", Date.now());
     next();
 });
 
-sessionsMongo.post("/login", (req, res) => {
+sessionsMongo.post("/login", async(req, res) => {
     try {
-        const {username} = req.body;
-
-    if(username){
-        req.session.username=username;
-        console.log(req.session);
-        //const newUser = new sessionsMongoDAO(req.body);
-        //newUser.save();
-        res.send(req.session)
-    } else{
-        res.send({error:"por favor ingresa el nombre"})
-    }
+        const { newUser } = req.body;
+        const userName = new sessionsMongoDAO(req.body);
+        userName.save();
+        if (newUser) {
+            req.session.username = newUser;
+            res.status(200).send(req.session.newUser)
+        } else {
+            res.send({ error: "por favor ingresa el nombre" })
+        }
     } catch (error) {
         return res.status(400).send({
             error: `An error occurred ${error.message}`,
@@ -28,7 +26,23 @@ sessionsMongo.post("/login", (req, res) => {
     }
 });
 
-sessionsMongo.get("/logout", (req, res) => {
+sessionsMongo.get("/user", async (req, res) => {
+    try {
+        const username= await sessionsMongoDAO.find();
+        console.log(username);
+        if (username) {
+            res.status(200).send(username)
+        } else {
+            res.send({ error: "No existe usuario" })
+        }
+    } catch (error) {
+        return res.status(400).send({
+            error: `An error occurred ${error.message}`,
+        });
+    }
+});
+
+sessionsMongo.delete("/logout", (req, res) => {
     try {
         req.session.destroy((error) => {
             if (error) {

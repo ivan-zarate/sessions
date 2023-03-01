@@ -22,9 +22,26 @@ app.use(express.urlencoded({ extended: true }));
 const port = process.env.NODE_PORT;
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  );
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   next();
 });
+
+app.use(cookieParser());
+app.use(session({
+  store: MongoStore.create({
+      mongoUrl:'mongodb+srv://ivanzarate:Estela12@cluster0.jrymifn.mongodb.net/ecommerce?retryWrites=true&w=majority',
+      ttl:60
+  }),
+  secret:"clavesecretaaaaaaa",
+  resave:false,
+  saveUninitialized:false
+}))
 
 app.use('/api', productsInMongo);
 app.use('/api', cartsInMongo);
@@ -33,17 +50,6 @@ app.use('/api', sessionsMongo)
 
 app.use(express.static("public"));
 
-
-app.use(cookieParser());
-app.use(session({
-  store: MongoStore.create({
-      mongoUrl:'mongodb+srv://ivanzarate:Estela12@cluster0.jrymifn.mongodb.net/ecommerce?retryWrites=true&w=majority'
-  }),
-  ttl:60,
-  secret:"clavesecreta",
-  resave:false,
-  saveUninitialized:false
-}))
 
 const mensajes = [];
 
