@@ -15,28 +15,41 @@ const cartsInMongo=require("./src/routes/cartsRoutes/cartsMongo");
 const chatInMongo=require("./src/routes/messagesRoutes/messagesMongo")
 const sessionsMongo=require("./src/routes/sessionRoutes/authsSession")
 
-app.use(cors());
+const whiteList= ['http://localhost:8080', 'http://localhost:8080/api/login', 'http://127.0.0.1:5500']
+
+app.use(cors({origin: whiteList}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const port = process.env.NODE_PORT;
 
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+//   res.header('Access-Control-Allow-Credentials', true);
+//   res.header(
+//     'Access-Control-Allow-Headers',
+//     'Origin, X-Requested-With, Content-Type, Accept'
+//   );
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+//   next();
+// });
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+  // res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:8080', "http://127.0.0.1:5500'");
   res.header('Access-Control-Allow-Credentials', true);
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
-  );
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
   next();
 });
 
-app.use(cookieParser());
+
+//app.use(cookieParser());
 app.use(session({
   store: MongoStore.create({
       mongoUrl:'mongodb+srv://ivanzarate:Estela12@cluster0.jrymifn.mongodb.net/ecommerce?retryWrites=true&w=majority',
-      ttl:60
+      ttl:120
   }),
   secret:"clavesecretaaaaaaa",
   resave:false,

@@ -1,5 +1,6 @@
 let baseUrl = "http://localhost:8080";
 let productos = [];
+let user = [];
 
 const getProducts = () => {
     fetch(baseUrl + '/api/products').then(res => {
@@ -156,21 +157,26 @@ const addProductCart = (productCode) => {
 }
 
 // registro de usuarios
-let user="";
-const addUser = () => {
+
+const addUser = async () => {
     let data = {
         userName: document.getElementById("userName").value,
     }
-    fetch(baseUrl + '/api/login', {
+    await fetch(baseUrl + '/api/login', {
         method: "POST",
-        body: JSON.stringify(data),
         headers: {
             "Content-Type": 'application/json; charset=UTF-8'
         },
+        // credentials:"include",
+        body: JSON.stringify(data),
     })
-    .then(res => {
-        user=data.userName;
-    })
+        .then(res => {
+            if (res) {
+                if (user){
+                    location.href = "../public/index.html"
+                }
+            }
+        })
 }
 
 
@@ -183,13 +189,23 @@ const getUser = () => {
     })
 }
 const printUser = () => {
-    let container = document.getElementById('user');
-    container.innerHTML=`<p>Bienvenido ${user[0].userName}</p>
-    <button type="button" class="btn btn-danger btn-sm" onclick="destroySession()">LogOut</button>`
+    if (user.error){
+        container = document.getElementById('user').style.display="none";
+        
+    }
+    else{
+        let container = document.getElementById('user');
+        container.innerHTML = 
+        `<div>
+        <p>¡Hola ${user.userName}!</p>
+        <button type="button" class="btn btn-danger btn-sm" onclick="destroySession()">LogOut</button>
+        </div>`
+    }
 }
 
-const destroySession= ()=>{
-    fetch(baseUrl + '/api/logout' , { method: "DELETE" }).then(res => {
+const destroySession = () => {
+    fetch(baseUrl + '/api/logout', { method: "DELETE" }).then(res => {
+        user=[];
         getProducts();
     })
 }

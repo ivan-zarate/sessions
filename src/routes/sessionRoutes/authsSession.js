@@ -1,21 +1,26 @@
 const express = require("express");
 const sessionsMongo = express.Router();
-const sessionsMongoDAO = require("../../daos/sessions/daoSessionMongo"); // Par crear usuario en base de datos
+const sessionsMongoDAO = require("../../daos/sessions/daoSessionMongo");
+const cors = require('cors'); // Par crear usuario en base de datos
 // const { checkLogged } = require("../../middlewares/validateAuth");
+
+let user=[];
 
 sessionsMongo.use((req, res, next) => {
     console.log("Time: ", Date.now());
     next();
 });
 
-sessionsMongo.post("/login", async(req, res) => {
+sessionsMongo.post("/login", cors(), (req, res) => {
     try {
-        const { newUser } = req.body;
+        const newUser  = req.body;
         const userName = new sessionsMongoDAO(req.body);
+        user.push(req.body)
         userName.save();
         if (newUser) {
             req.session.username = newUser;
-            res.status(200).send(req.session.newUser)
+            console.log(req.session);
+            res.status(200).send("Registro exitoso")
         } else {
             res.send({ error: "por favor ingresa el nombre" })
         }
@@ -28,8 +33,7 @@ sessionsMongo.post("/login", async(req, res) => {
 
 sessionsMongo.get("/user", async (req, res) => {
     try {
-        const username= await sessionsMongoDAO.find();
-        console.log(username);
+        const username= user[0];
         if (username) {
             res.status(200).send(username)
         } else {
@@ -44,6 +48,7 @@ sessionsMongo.get("/user", async (req, res) => {
 
 sessionsMongo.delete("/logout", (req, res) => {
     try {
+        user=[];
         req.session.destroy((error) => {
             if (error) {
                 res.redirect("/")
