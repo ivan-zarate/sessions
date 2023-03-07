@@ -3,7 +3,7 @@ const passport = require("passport");
 const sessionsMongo = express.Router();
 const usersMongoDAO = require("../../daos/users/daoUsersMongo"); // Par crear usuario en base de datos
 const LocalStrategy = require("passport-local").Strategy;
-const bcrypt= require("bcryptjs");
+const bcrypt = require("bcryptjs");
 // const { checkLogged } = require("../../middlewares/validateAuth");
 
 let user = [];
@@ -30,7 +30,7 @@ passport.use("signUpStrategy", new LocalStrategy(
             if (userDB) return done(null, false, { message: `El usuario ya existe` })
             const newUser = {
                 username: username,
-                password: bcrypt.hashSync(password,8)
+                password: bcrypt.hashSync(password, 8)
             };
             usersMongoDAO.create(newUser, (err, userCreated) => {
                 if (err) return done(err, false, { message: `Hubo un error al crear el usuario ${err}` });
@@ -40,50 +40,48 @@ passport.use("signUpStrategy", new LocalStrategy(
     }
 ));
 
-passport.use("loginStrategy", new LocalStrategy(
-    {
-        passReqToCallback: true,
-        usernameField: "email"
-    },
-    (req, username, password, done) => {
-        usersMongoDAO.findOne({ username: username }, (err, userDB) => {
-            if (err) return done(err, false, { message: `Hubo un error al buscar el usuario ${err} ` });
-            if (!userDB) return done(null, false, { message: `El usuario no existe` });
-            const compare=bcrypt.compareSync(password, userDB.password);
-                if (compare) return done(null, false, { message: `Hola de nuevo ${userDB.username}` })
-                return done(err, false, { message: `La contraseña no es correcta` });
-        })
-    }
-))
-
 sessionsMongo.use((req, res, next) => {
     console.log("Time: ", Date.now());
     next();
 });
 
 sessionsMongo.post("/signup", passport.authenticate("signUpStrategy", {
-    failureRedirect:"/registro",
+    failureRedirect: "/registro",
     failureMessage: true,
-    
+
 }), (req, res) => {
     user.push(req.body);
     res.status(200).send("Registro exitoso")
 });
 
 sessionsMongo.get("/registro", (req, res) => {
-    let errMsg= req.session.messages ? req.session.messages[0] :"";
+    let errMsg = req.session.messages ? req.session.messages[0] : "";
     console.log(errMsg);
-    res.send({error: errMsg});
-    req.session.messages=[];
+    res.send({ error: errMsg });
+    req.session.messages = [];
 });
 
-sessionsMongo.post("/login", passport.authenticate("loginStrategy", {
-    failureRedirect:"/registro",
-    failureMessage: true,
-    
-}),(req, res) => {
-    user.push(req.body);
-    res.status(200).send("Ingreso exitoso")
+sessionsMongo.post("/login", (req, res) => {
+    try {
+        const {email, password} = req.body;
+        usersMongoDAO.findOne({ username: email }, (err, userDB) => {
+            if (err) res.send(err, { message: `Hubo un error al buscar el usuario ${err} ` });
+            if (!userDB) res.send({ message: `El usuario no existe` });
+            const compare = bcrypt.compareSync(password, userDB.password);
+            if (compare){
+                user.push(req.body);
+                res.send({ message: `Hola de nuevo ${userDB.username}` })
+            }
+            else{
+                res.send({ message: `La contraseña no es correcta` })
+            }     
+        })
+       
+    } catch (error) {
+        return res.status(400).send({
+            error: `An error occurred ${error.message}`,
+        });
+    }
 });
 
 sessionsMongo.get("/user", async (req, res) => {
