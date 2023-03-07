@@ -160,25 +160,43 @@ const addProductCart = (productCode) => {
 
 const addUser = async () => {
     let data = {
-        userName: document.getElementById("userName").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+    }
+    await fetch(baseUrl + '/api/signup', {
+        method: "POST",
+        headers: {
+            "Content-Type": 'application/json; charset=UTF-8'
+        },
+        //credentials:"include",
+        body: JSON.stringify(data),
+    })
+        .then(res => {
+            if (res) {
+                    location.href = "../public/index.html"
+            }
+        })
+}
+
+const loginUser = async () => {
+    let data = {
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
     }
     await fetch(baseUrl + '/api/login', {
         method: "POST",
         headers: {
             "Content-Type": 'application/json; charset=UTF-8'
         },
-        // credentials:"include",
+        //credentials:"include",
         body: JSON.stringify(data),
     })
         .then(res => {
             if (res) {
-                if (user){
                     location.href = "../public/index.html"
-                }
             }
         })
 }
-
 
 const getUser = () => {
     fetch(baseUrl + '/api/user').then(res => {
@@ -197,7 +215,7 @@ const printUser = () => {
         let container = document.getElementById('user');
         container.innerHTML = 
         `<div>
-        <p>¡Hola ${user.userName}!</p>
+        <p>¡Hola ${user.email}!</p>
         <button type="button" class="btn btn-danger btn-sm" onclick="destroySession()">LogOut</button>
         </div>`
     }

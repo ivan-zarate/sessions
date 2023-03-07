@@ -5,57 +5,53 @@ const server = require("http").Server(app);
 const io = require("socket.io")(server);
 const connection = require('./src/connections/connectionmongodb');
 const session=require("express-session");
-const cookieParser= require("cookie-parser");
 const MongoStore=require("connect-mongo");
+const passport= require("passport")
 require("dotenv").config();
 
-
+//Acceso a rutas
 const productsInMongo = require("./src/routes/productsRoutes/productsMongo");
 const cartsInMongo=require("./src/routes/cartsRoutes/cartsMongo");
 const chatInMongo=require("./src/routes/messagesRoutes/messagesMongo")
 const sessionsMongo=require("./src/routes/sessionRoutes/authsSession")
 
-const whiteList= ['http://localhost:8080', 'http://localhost:8080/api/login', 'http://127.0.0.1:5500']
 
-app.use(cors({origin: whiteList}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const port = process.env.NODE_PORT;
 
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
-//   res.header('Access-Control-Allow-Credentials', true);
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'Origin, X-Requested-With, Content-Type, Accept'
-//   );
-//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-//   next();
-// });
+//Configuracion CORS para visualizar html correctamente
+const whiteList= ['http://localhost:8080', 'http://localhost:8080/api/login', 'http://127.0.0.1:5500']
 
-app.use((req, res, next) => {
+app.use(cors({origin: whiteList}));
+
+
+app.use((req, res, next) => {res.header('Access-Control-Allow-Credentials', "true");
   // res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Origin', 'http://localhost:8080', "http://127.0.0.1:5500'");
-  res.header('Access-Control-Allow-Credentials', true);
+  
   res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
   res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
   next();
 });
 
-
-//app.use(cookieParser());
+//Creacion de sesiones en mongoStore
 app.use(session({
   store: MongoStore.create({
       mongoUrl:'mongodb+srv://ivanzarate:Estela12@cluster0.jrymifn.mongodb.net/ecommerce?retryWrites=true&w=majority',
-      ttl:120
+      ttl:600
   }),
   secret:"clavesecretaaaaaaa",
   resave:false,
   saveUninitialized:false
 }))
 
+//configurar passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+//Uso de app en las distintas rutas
 app.use('/api', productsInMongo);
 app.use('/api', cartsInMongo);
 app.use('/api', chatInMongo);
@@ -63,7 +59,7 @@ app.use('/api', sessionsMongo)
 
 app.use(express.static("public"));
 
-
+//Configuracion para crear mensajes
 const mensajes = [];
 
 io.on('connection', socket => {
@@ -74,6 +70,9 @@ io.on('connection', socket => {
     io.sockets.emit('mensajes', mensajes);
   });
 });
+
+//Conexion al servidor
+const port = process.env.NODE_PORT;
 
 connection().then(()=> console.log('Connected to Mongo')).catch(()=> console.log('An error occurred trying to connect to mongo'));
 
