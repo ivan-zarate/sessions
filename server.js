@@ -3,11 +3,13 @@ const cors = require('cors');
 const app = require("express")();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
+require("dotenv").config();
 const connection = require('./src/connections/connectionmongodb');
 const session=require("express-session");
 const MongoStore=require("connect-mongo");
-const passport= require("passport")
-require("dotenv").config();
+const passport= require("passport");
+
+
 
 //Acceso a rutas
 const productsInMongo = require("./src/routes/productsRoutes/productsMongo");
@@ -39,7 +41,7 @@ app.use((req, res, next) => {res.header('Access-Control-Allow-Credentials', "tru
 //Creacion de sesiones en mongoStore
 app.use(session({
   store: MongoStore.create({
-      mongoUrl:'mongodb+srv://ivanzarate:Estela12@cluster0.jrymifn.mongodb.net/ecommerce?retryWrites=true&w=majority',
+      mongoUrl:process.env.NODE_URL_SESSION,
       ttl:600
   }),
   secret:"clavesecretaaaaaaa",
