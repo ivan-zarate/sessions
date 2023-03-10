@@ -51,10 +51,11 @@ sessionsMongo.post("/signup", passport.authenticate("signUpStrategy", {
 
 }), (req, res) => {
     user.push(req.body);
-    res.status(200).send("Registro exitoso")
+    res.status(200).cookie(user, JSON.stringify(user),{sameSite:"none", secure:true}).send("Registro exitoso")
 });
 
 sessionsMongo.get("/registro", (req, res) => {
+    console.log("registro", req.session);
     let errMsg = req.session.messages ? req.session.messages[0] : "";
     console.log(errMsg);
     res.send({ error: errMsg });
@@ -86,6 +87,7 @@ sessionsMongo.post("/login", (req, res) => {
 
 sessionsMongo.get("/user", async (req, res) => {
     try {
+        console.log("session dentro de user", req.session);
         const username = user[0];
         console.log("user", username);
         if (username) {

@@ -15,7 +15,8 @@ const passport= require("passport");
 const productsInMongo = require("./src/routes/productsRoutes/productsMongo");
 const cartsInMongo=require("./src/routes/cartsRoutes/cartsMongo");
 const chatInMongo=require("./src/routes/messagesRoutes/messagesMongo")
-const sessionsMongo=require("./src/routes/sessionRoutes/authsSession")
+const sessionsMongo=require("./src/routes/sessionRoutes/authsSession");
+const { Cookie } = require("express-session");
 
 
 app.use(express.json());
@@ -25,18 +26,26 @@ app.use(express.urlencoded({ extended: true }));
 //Configuracion CORS para visualizar html correctamente
 const whiteList= ['http://localhost:8080', 'http://localhost:8080/api/login', 'http://127.0.0.1:5500']
 
-app.use(cors({origin: whiteList}));
+// app.use(cors({origin: whiteList}));
+app.use(
+  cors({
+    origin: whiteList,
+    methods: ["POST", "PUT", "GET", "DELETE", "OPTIONS", "HEAD"],
+    header:["Authorization","X-API-KEY", "Origin", "X-Requested-With", "Content-Type", "Accept, Access-Control-Allow-Request-Method"],
+    credentials: true,
+  })
+);
 
-
-app.use((req, res, next) => {res.header('Access-Control-Allow-Credentials', "true");
-  // res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Origin', 'http://localhost:8080', "http://127.0.0.1:5500'");
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Credentials', "true");
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Origin', 'http://localhost:8080', "http://127.0.0.1:5500'");
   
-  res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
-  next();
-});
+//   res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+//   res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+//   next();
+// });
 
 //Creacion de sesiones en mongoStore
 app.use(session({
@@ -46,7 +55,11 @@ app.use(session({
   }),
   secret:"clavesecretaaaaaaa",
   resave:false,
-  saveUninitialized:false
+  saveUninitialized:false,
+  cookie:{
+    sameSite:"none",
+    secure:true
+  }
 }))
 
 //configurar passport

@@ -168,7 +168,8 @@ const addUser = async () => {
         headers: {
             "Content-Type": 'application/json; charset=UTF-8'
         },
-        //credentials:"include",
+        //withCredentials: false,
+        credentials:"include",
         body: JSON.stringify(data),
     })
         .then(res => {
