@@ -32,12 +32,14 @@ passport.use("signUpStrategy", new LocalStrategy(
                 username: username,
                 password: bcrypt.hashSync(password, 8)
             };
+            user.push(username);
             usersMongoDAO.create(newUser, (err, userCreated) => {
                 if (err) return done(err, false, { message: `Hubo un error al crear el usuario ${err}` });
                 return done(null, userCreated, { message: "Usuario creado exitosamente" })
             })
         })
     }
+
 ));
 
 sessionsMongo.use((req, res, next) => {
@@ -45,39 +47,35 @@ sessionsMongo.use((req, res, next) => {
     next();
 });
 
-sessionsMongo.post("/signup", passport.authenticate("signUpStrategy", {
-    failureRedirect: "/registro",
-    failureMessage: true,
+sessionsMongo.post("/signup", (req, res) => {
 
-}), (req, res) => {
-    user.push(req.body);
-    res.status(200).cookie(user, JSON.stringify(user),{sameSite:"none", secure:true}).send("Registro exitoso")
-});
+    passport.authenticate("signUpStrategy", (error, user, info) => {
 
-sessionsMongo.get("/registro", (req, res) => {
-    console.log("registro", req.session);
-    let errMsg = req.session.messages ? req.session.messages[0] : "";
-    console.log(errMsg);
-    res.send({ error: errMsg });
-    req.session.messages = [];
+        if (error) return res.json({ message: info.message });
+
+        if (!user) return res.json({ message: info.message });
+
+        res.json({ user, message: info.message });
+
+    })(req, res);//pasamos a authenticate los argumentos req,res, y next para que se puedan utilizar dentro de este método.
 });
 
 sessionsMongo.post("/login", (req, res) => {
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
         usersMongoDAO.findOne({ username: email }, (err, userDB) => {
             if (err) res.send(err, { message: `Hubo un error al buscar el usuario ${err} ` });
             if (!userDB) res.send({ message: `El usuario no existe` });
             const compare = bcrypt.compareSync(password, userDB.password);
-            if (compare){
-                user.push(req.body);
-                res.send({ message: `Hola de nuevo ${userDB.username}` })
+            if (compare) {
+                user.push(email);
+                res.send({ user: userDB.username })
             }
-            else{
+            else {
                 res.send({ message: `La contraseña no es correcta` })
-            }     
+            }
         })
-       
+
     } catch (error) {
         return res.status(400).send({
             error: `An error occurred ${error.message}`,
@@ -87,9 +85,7 @@ sessionsMongo.post("/login", (req, res) => {
 
 sessionsMongo.get("/user", async (req, res) => {
     try {
-        console.log("session dentro de user", req.session);
-        const username = user[0];
-        console.log("user", username);
+        const username = user;
         if (username) {
             res.status(200).send(username)
         } else {

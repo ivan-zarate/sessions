@@ -3,12 +3,12 @@ const cors = require('cors');
 const app = require("express")();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
-require("dotenv").config();
+const config=require("./config/config");
+const newArgs=require("./minimist/arg");
 const connection = require('./src/connections/connectionmongodb');
 const session=require("express-session");
 const MongoStore=require("connect-mongo");
 const passport= require("passport");
-
 
 
 //Acceso a rutas
@@ -16,7 +16,6 @@ const productsInMongo = require("./src/routes/productsRoutes/productsMongo");
 const cartsInMongo=require("./src/routes/cartsRoutes/cartsMongo");
 const chatInMongo=require("./src/routes/messagesRoutes/messagesMongo")
 const sessionsMongo=require("./src/routes/sessionRoutes/authsSession");
-const { Cookie } = require("express-session");
 
 
 app.use(express.json());
@@ -26,7 +25,6 @@ app.use(express.urlencoded({ extended: true }));
 //Configuracion CORS para visualizar html correctamente
 const whiteList= ['http://localhost:8080', 'http://localhost:8080/api/login', 'http://127.0.0.1:5500']
 
-// app.use(cors({origin: whiteList}));
 app.use(
   cors({
     origin: whiteList,
@@ -36,24 +34,13 @@ app.use(
   })
 );
 
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Credentials', "true");
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header('Access-Control-Allow-Origin', 'http://localhost:8080', "http://127.0.0.1:5500'");
-  
-//   res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
-//   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-//   res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
-//   next();
-// });
-
 //Creacion de sesiones en mongoStore
 app.use(session({
   store: MongoStore.create({
-      mongoUrl:process.env.NODE_URL_SESSION,
+      mongoUrl:config.MONGO_URL,
       ttl:600
   }),
-  secret:"clavesecretaaaaaaa",
+  secret:config.CLAVE_SECRETA,
   resave:false,
   saveUninitialized:false,
   cookie:{
@@ -70,7 +57,7 @@ app.use(passport.session());
 app.use('/api', productsInMongo);
 app.use('/api', cartsInMongo);
 app.use('/api', chatInMongo);
-app.use('/api', sessionsMongo)
+app.use('/api', sessionsMongo);
 
 app.use(express.static("public"));
 
@@ -87,7 +74,7 @@ io.on('connection', socket => {
 });
 
 //Conexion al servidor
-const port = process.env.NODE_PORT;
+const port = newArgs;
 
 connection().then(()=> console.log('Connected to Mongo')).catch(()=> console.log('An error occurred trying to connect to mongo'));
 

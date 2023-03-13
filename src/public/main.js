@@ -168,15 +168,23 @@ const addUser = async () => {
         headers: {
             "Content-Type": 'application/json; charset=UTF-8'
         },
-        //withCredentials: false,
         credentials:"include",
         body: JSON.stringify(data),
     })
-        .then(res => {
-            if (res) {
-                    location.href = "../public/index.html"
-            }
-        })
+    .then((resp) => resp.json())
+    .then(response=>{
+        let credentials = document.getElementById('credentials');
+        if(response.user){
+            //const newUser=JSON.stringify(response.user.username);
+            
+            location.href = "../public/index.html"
+        }else{
+            const result= JSON.stringify(response.message);
+            credentials.innerHTML = 
+            `
+            <p>${result}</p>`
+        }
+    })             
 }
 
 const loginUser = async () => {
@@ -189,14 +197,23 @@ const loginUser = async () => {
         headers: {
             "Content-Type": 'application/json; charset=UTF-8'
         },
-        //credentials:"include",
+        credentials:"include",
         body: JSON.stringify(data),
     })
-        .then(res => {
-            if (res) {
-                    location.href = "../public/index.html"
-            }
-        })
+    .then((resp) => resp.json())
+    .then(response=>{
+        console.log("dentro de response",response);
+        let credentials = document.getElementById('login');
+        if(response.user){
+            //const newUser=JSON.stringify(response.user);
+            location.href = "../public/index.html"
+        }else{
+            const result= JSON.stringify(response.message);
+            credentials.innerHTML = 
+            `
+            <p>${result}</p>`
+        }
+    })
 }
 
 const getUser = () => {
@@ -208,15 +225,14 @@ const getUser = () => {
     })
 }
 const printUser = () => {
-    if (user.error){
-        container = document.getElementById('user').style.display="none";
-        
+    if (user.length===0){
+        container = document.getElementById('user').style.display="none"; 
     }
     else{
         let container = document.getElementById('user');
         container.innerHTML = 
-        `<div>
-        <p>¡Hola ${user.email}!</p>
+        `<div class="user">
+        <span>¡Hola ${user}!</span>
         <button type="button" class="btn btn-danger btn-sm" onclick="destroySession()">LogOut</button>
         </div>`
     }

@@ -10,6 +10,19 @@ body {
 .container-fluid ul{
   flex-direction: row;
 }
+.sesion{
+  position: relative;
+  left: 80%;
+}
+.sesion a{
+  padding-left: 1.5em;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+.sesion a:hover{
+  color: black;
+}
 
 #products,
 #items {
@@ -136,4 +149,40 @@ body {
     transform: rotate(45deg);
   }
 
+}
+
+/* Vistas de sesion */
+
+#login, #credentials{
+  background-color: lightcoral; 
+  color: black;
+  font-weight: bolder;
+  max-width: 45vw;
+}
+
+.redireccion{
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: bolder;
+}
+.redireccion a{
+  text-decoration: none;
+}
+
+.user{
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 1em;
+  padding-left: 2em;
+  background-color:bisque;
+  max-width: 30vw;
+  align-items: center;
+}
+.btn{
+  margin-top: .1em;
+  margin-left: 2em;
+  margin-bottom: .1em;
+}
+.user span{
+  font-weight: bolder;
+  font-family: 'Times New Roman', Times, serif;
 }
